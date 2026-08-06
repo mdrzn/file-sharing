@@ -1,0 +1,37 @@
+{
+  "name": "mdrzn/file-sharing",
+  "description": "A lightweight temporary file-sharing service with browser and API uploads.",
+  "type": "library",
+  "license": "GPL-3.0-only",
+  "autoload": {
+    "psr-4": {
+      "Mdrzn\\FileSharing\\": "./",
+      "Mdrzn\\FileSharing\\Classes\\": "./Classes"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Mdrzn\\FileSharing\\Benchmarks\\": "./Benchmarks"
+    }
+  },
+  "authors": [
+    {
+      "name": "Go Johansson (neku)",
+      "email": "neku@pomf.se"
+    }
+  ],
+  "minimum-stability": "stable",
+  "require": {
+    "ext-fileinfo": "*",
+    "ext-pdo": "*",
+    "ext-apcu": "*"
+  },
+  "require-dev": {
+    "phpbench/phpbench": "^1.0",
+    "friendsofphp/php-cs-fixer": "^3.72"
+  },
+  "config": {
+    "optimize-autoloader": true,
+    "classmap-authoritative": true
+  }
+}

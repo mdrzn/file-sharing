@@ -1,0 +1,29 @@
+{
+  "name": "file-sharing",
+  "version": "1.0.0",
+  "description": "A lightweight temporary file-sharing service with browser and API uploads.",
+  "homepage": "https://files.mdrzn.it",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mdrzn/file-sharing"
+  },
+  "author": "mdrzn",
+  "contributors": [
+    "Go Johansson and original community contributors"
+  ],
+  "license": "GPL-3.0-only",
+  "bugs": {
+    "url": "https://github.com/mdrzn/file-sharing/issues"
+  },
+  "devDependencies": {
+    "ejs": "^3.1.10",
+    "imagemin-cli": "^8.0.0",
+    "imagemin-optipng": "^8.0.0",
+    "@node-minify/core": "^8.0.6",
+    "@node-minify/cli": "^8.0.6",
+    "@node-minify/uglify-es": "^8.0.6",
+    "@node-minify/cssnano": "^8.0.6",
+    "@node-minify/html-minifier": "^8.0.6",
+    "node-jq": "^4.4.0"
+  }
+}
