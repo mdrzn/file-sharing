@@ -1,18 +1,10 @@
-<nav>
-    <ul>
-        <li>
-            <a href="/"><%= siteName %></a>
-        </li>
-        <li>
-            <a href="api.html">API</a>
-        </li>
-        <li>
-            <a href="faq.html">FAQ</a>
-        </li>
-        <% if (showGithub) { %>
-            <li>
-                <a href="https://github.com/mdrzn/file-sharing">Github</a>
-            </li>
-        <% } %>
-    </ul>
-</nav>
+<footer class="site-footer">
+    <span><%= siteName %></span>
+    <span class="dot">·</span>
+    <a href="api.html">API</a>
+    <span class="dot">·</span>
+    <a href="faq.html">FAQ</a>
+    <% if (showGithub) { %><span class="dot">·</span><a href="https://github.com/mdrzn/file-sharing">Open source</a><% } %>
+    <span class="dot">·</span>
+    <span>Based on <a href="https://github.com/pomf/pomf">Pomf</a></span>
+</footer>

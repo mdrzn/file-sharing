@@ -1,17 +1,65 @@
 <%- include('./partials/header.ejs'); %>
-<div class="page-wrapper" id="page">
-    <div class="container">
-        <div class="jumbotron">
-            <h1><%= siteName %> API</h1>
-        </div>
-        <div class="alert alert-info">
-            <section>
-                <h3>Endpoint</h3>
-                <p>You may POST an array of files to&nbsp;<b>https://<%= DOMAIN %>/upload</b>, by default you will get a json response.</p>
-                <p>If you want a response in something else than json you add a flag to specify what format you want, for example&nbsp;<b>https://<%= DOMAIN %>/upload?output=csv</b>.</p>
-                <p>Valid response types are: json, csv, text, html and gyazo.</p>
-                <h3>Curl Example</h3>
-                <p><kbd>curl -i -F files[]=@yourfile.jpeg https://<%= DOMAIN %>/upload</kbd></p>
-            </section>
-        </div>
+<main class="page page-doc" id="page">
+    <section class="hero hero-small">
+        <h1>API</h1>
+        <p class="lead">Upload from scripts, terminals and screenshot tools. No key needed.</p>
+    </section>
+
+    <section class="card">
+        <h2>Upload</h2>
+        <p><span class="method">POST</span> <code>https://<%= DOMAIN %>/upload</code> with one or more files in the multipart field <code>files[]</code>.</p>
+        <pre><code>curl -F "files[]=@screenshot.png" https://<%= DOMAIN %>/upload</code></pre>
+        <p>Response:</p>
+        <pre><code>{
+    "success": true,
+    "files": [
+        {
+            "hash": "a3f9…",
+            "name": "screenshot.png",
+            "url": "https://<%= FILE_DOMAIN %>/aBcDeF.png",
+            "size": 48211
+        }
+    ]
+}</code></pre>
+    </section>
+
+    <section class="card">
+        <h2>Response formats</h2>
+        <p>Add <code>?output=</code> to pick another format.</p>
+        <table>
+            <tr><th><code>json</code></th><td>Default, as above.</td></tr>
+            <tr><th><code>text</code></th><td>Just the links, one per line &mdash; handy in scripts: <code>curl -F "files[]=@a.zip" "https://<%= DOMAIN %>/upload?output=text"</code></td></tr>
+            <tr><th><code>csv</code></th><td>name, url, hash, size</td></tr>
+            <tr><th><code>html</code></th><td>Links as HTML anchors.</td></tr>
+        </table>
+        <p>Errors return <code>"success": false</code> with an <code>errorcode</code> and a <code>description</code>.</p>
+    </section>
+
+    <section class="card">
+        <h2>Limits</h2>
+        <ul>
+            <li>Up to <strong><%= max_upload_size %> MiB</strong> per file in the browser. Files are deleted after <strong><%= expireTime %> <%= expireTimeUnit %></strong>.</li>
+            <li>A single API request is also limited by the Cloudflare proxy in front of the site (100&nbsp;MB on standard plans): for bigger files use the chunked endpoint below.</li>
+        </ul>
+    </section>
+
+    <section class="card">
+        <h2>Large files (chunked)</h2>
+        <p>The browser uploads files over 8&nbsp;MiB in 8&nbsp;MiB parts to <code>https://<%= DOMAIN %>/chunk.php</code>. Each request is multipart with <code>name</code>, <code>total</code> (bytes), <code>offset</code> (bytes), <code>chunk</code> and <code>id</code> (empty for the first part). Send the next part with the returned <code>id</code> and <code>offset</code>; the last response has the usual <code>files</code> array.</p>
+    </section>
+
+    <section class="card">
+        <h2>ShareX</h2>
+        <p>Save this as <code><%= siteName %>.sxcu</code> and open it to add <%= siteName %> as a custom uploader:</p>
+        <pre><code>{
+    "Version": "15.0.0",
+    "Name": "<%= siteName %>",
+    "DestinationType": "ImageUploader, FileUploader",
+    "RequestMethod": "POST",
+    "RequestURL": "https://<%= DOMAIN %>/upload",
+    "Body": "MultipartFormData",
+    "FileFormName": "files[]",
+    "URL": "{json:files[0].url}"
+}</code></pre>
+    </section>
 <%- include('./partials/footer.ejs'); %>

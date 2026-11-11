@@ -16,3 +16,4 @@ syncToDev.sh
 syncToDev.sh
 bun.lock
 package.xml
+.design/

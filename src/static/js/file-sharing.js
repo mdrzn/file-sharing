@@ -27,11 +27,28 @@ document.addEventListener('DOMContentLoaded', () => {
      * @param {File} file
      * @return {HTMLLIElement} row
      */
+    const formatSize = (bytes) => {
+        const units = ['B', 'KB', 'MB', 'GB'];
+        let value = bytes, unit = 0;
+        while (value >= 1024 && unit < units.length - 1) { value /= 1024; unit += 1; }
+        return `${value < 10 && unit > 0 ? value.toFixed(1) : Math.round(value)} ${units[unit]}`;
+    };
+
     const addRow = (file) => {
         const row = document.createElement('li');
+
+        const icon = document.createElement('span');
+        icon.className = 'file-icon';
+        const ext = file.name.includes('.') ? file.name.split('.').pop() : '';
+        icon.textContent = ext.length > 0 && ext.length <= 4 ? ext : 'file';
+
         const name = document.createElement('span');
         name.textContent = file.name;
         name.className = 'file-name';
+
+        const size = document.createElement('span');
+        size.className = 'file-size';
+        size.textContent = formatSize(file.size);
 
         const progressIndicator = document.createElement('span');
         progressIndicator.className = 'progress-percent';
@@ -42,7 +59,9 @@ document.addEventListener('DOMContentLoaded', () => {
         progressBar.setAttribute('max', '100');
         progressBar.setAttribute('value', '0');
 
+        row.appendChild(icon);
         row.appendChild(name);
+        row.appendChild(size);
         row.appendChild(progressBar);
         row.appendChild(progressIndicator);
 
@@ -67,32 +86,42 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
     /**
+     * Copies text to the clipboard and briefly confirms on the button.
+     */
+    const copyText = (text, button, label) => {
+        const done = () => {
+            button.textContent = 'Copied ✓';
+            button.classList.add('copied');
+            setTimeout(() => { button.textContent = label; button.classList.remove('copied'); }, 1600);
+        };
+        if (navigator.clipboard && window.isSecureContext) {
+            navigator.clipboard.writeText(text).then(done);
+        } else {
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textarea);
+            done();
+        }
+    };
+
+    /**
      * Creates a button that copies all links from successfully uploaded files.
      */
     const createCopyAllButton = () => {
         if (document.getElementById('copy-all-btn')) {
             return;
         }
-
         const copyAll = document.createElement('button');
         copyAll.id = 'copy-all-btn';
         copyAll.className = 'upload-clipboard-btn';
-        copyAll.textContent = 'Copy All';
-
+        copyAll.textContent = 'Copy all links';
         const fileList = document.getElementById('upload-filelist');
         fileList.parentNode.insertBefore(copyAll, fileList.nextSibling);
-
-        copyAll.addEventListener("click", () => {
-            const links = uploadedFiles.join('\n');
-            const textarea = document.createElement('textarea');
-            textarea.textContent = links;
-            document.body.appendChild(textarea);
-            textarea.select();
-            document.execCommand("copy");
-            document.body.removeChild(textarea);
-        });
+        copyAll.addEventListener('click', () => copyText(uploadedFiles.join('\n'), copyAll, 'Copy all links'));
     };
-
 
     /**
      * Complete the uploading process by checking the response status and, if the
@@ -107,60 +136,47 @@ document.addEventListener('DOMContentLoaded', () => {
         const row = xhr.row;
         const percentIndicator = xhr.percent;
 
-        percentIndicator.style.visibility = 'hidden';
-        bar.style.visibility = 'hidden';
         row.removeChild(bar);
         row.removeChild(percentIndicator);
-        const respStatus = xhr.status;
 
         const url = document.createElement('span');
         url.className = 'file-url';
         row.appendChild(url);
 
-        const link = document.createElement('a');
-        if (respStatus === 200) {
-            const response = JSON.parse(xhr.responseText);
-            if (response.success) {
-                const fileUrl = response.files[0].url;
-                link.textContent = fileUrl.replace(/.*?:\/\//g, '');
-                link.href = fileUrl;
-                link.target = "_BLANK";
-                url.appendChild(link);
-                uploadedFiles.push(fileUrl);
+        const fail = (message) => {
+            row.classList.add('failed');
+            url.classList.add('error');
+            url.textContent = message || 'Upload failed.';
+        };
 
+        let response = {};
+        try { response = JSON.parse(xhr.responseText); } catch (e) { /* risposta non JSON */ }
 
-                const copy = document.createElement('button');
-                copy.className = 'upload-clipboard-btn';
+        if (xhr.status === 200 && response.success) {
+            const fileUrl = response.files[0].url;
+            const link = document.createElement('a');
+            link.textContent = fileUrl.replace(/.*?:\/\//g, '');
+            link.href = fileUrl;
+            link.target = '_blank';
+            link.rel = 'noopener';
+            url.appendChild(link);
+            uploadedFiles.push(fileUrl);
 
-                const glyph = document.createElement('img');
-                copy.appendChild(glyph);
+            const copy = document.createElement('button');
+            copy.className = 'upload-clipboard-btn';
+            copy.type = 'button';
+            copy.textContent = 'Copy';
+            copy.addEventListener('click', () => copyText(fileUrl, copy, 'Copy'));
+            url.appendChild(copy);
+            row.classList.add('done');
 
-                url.appendChild(copy);
-
-                copy.addEventListener("click", () => {
-                    const element = document.createElement('a');
-                    element.textContent = response.files[0].url;
-                    link.appendChild(element);
-                    const range = document.createRange();
-                    range.selectNode(element);
-                    window.getSelection().removeAllRanges();
-                    window.getSelection().addRange(range);
-                    document.execCommand("copy");
-                    link.removeChild(element);
-                });
-                if (uploadedFiles.length > 1) {
-                    createCopyAllButton();
-                }
-            } else {
-                bar.innerHTML = `Error: ${response.description}`;
+            if (uploadedFiles.length > 1) {
+                createCopyAllButton();
             }
-        } else if (respStatus === 413) {
-            link.textContent = 'File too big!';
-            url.appendChild(link);
+        } else if (xhr.status === 413) {
+            fail('File too big!');
         } else {
-            const response = JSON.parse(xhr.responseText);
-            link.textContent = response.description;
-            url.appendChild(link);
+            fail(response.description);
         }
     };
 
@@ -256,8 +272,9 @@ document.addEventListener('DOMContentLoaded', () => {
      */
     const handleDrag = (state, element, evt) => {
         stopDefaultEvent(evt);
-        if (state.dragCount === 1) {
-            element.textContent = 'Drop it here~';
+        if (state.dragCount === 0) {
+            document.body.classList.add('dragging');
+            document.getElementById('upload-label').textContent = 'Drop to upload';
         }
         state.dragCount += 1;
     };
@@ -271,9 +288,10 @@ document.addEventListener('DOMContentLoaded', () => {
      */
     const handleDragAway = (state, element, evt) => {
         stopDefaultEvent(evt);
-        state.dragCount -= 1;
+        state.dragCount = Math.max(0, state.dragCount - 1);
         if (state.dragCount === 0) {
-            element.textContent = 'Select or drop file(s)';
+            document.body.classList.remove('dragging');
+            document.getElementById('upload-label').textContent = 'Drop files, paste, or click to choose';
         }
     };
 
@@ -286,6 +304,7 @@ document.addEventListener('DOMContentLoaded', () => {
      */
     const handleDragDrop = (state, element, evt) => {
         stopDefaultEvent(evt);
+        state.dragCount = 1;
         handleDragAway(state, element, evt);
         const len = evt.dataTransfer.files.length;
         for (let i = 0; i < len; i++) {
@@ -337,7 +356,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const uploadButton = document.getElementById('upload-btn');
     window.addEventListener('dragenter', (evt) => handleDrag(state, uploadButton, evt), false);
     window.addEventListener('dragleave', (evt) => handleDragAway(state, uploadButton, evt), false);
-    window.addEventListener('drop', (evt) => handleDragAway(state, uploadButton, evt), false);
+    // rilascio ovunque nella pagina, non solo sul riquadro
+    window.addEventListener('drop', (evt) => handleDragDrop(state, uploadButton, evt), false);
     window.addEventListener('dragover', stopDefaultEvent, false);
 
     const uploadInput = document.getElementById('upload-input');

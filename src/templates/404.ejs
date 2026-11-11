@@ -3,20 +3,21 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="light dark">
     <meta name="generator" content="File Sharing <%= pkgVersion %>">
     <meta name="description" content="<%= SiteMetaInfo %>">
-    <title><%= siteName %> &middot; 404</title>
-    <link rel="stylesheet" href="https://<%= DOMAIN %>/file-sharing.min.css"/>
+    <title><%= siteName %> &middot; Not found</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%236d5ae6'/%3E%3Cpath d='M16 23V10m0 0-5 5m5-5 5 5' stroke='white' stroke-width='3' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+    <link rel="stylesheet" href="https://<%= DOMAIN %>/file-sharing.min.css">
 </head>
 <body>
-
-<div class="container">
-    <div class="jumbotron">
-        <svg width="200" height="200" viewBox="0 0 6 6" xmlns="http://www.w3.org/2000/svg">
-            <path d="M3 5.5C1.619 5.5 0.5 4.381 0.5 3S1.619 0.5 3 0.5s2.5 1.119 2.5 2.5 -1.119 2.5 -2.5 2.5m0 -0.25a2.25 2.25 0 1 0 0 -4.5 2.25 2.25 0 0 0 0 4.5m-0.75 -1.125a0.125 0.125 0 1 1 -0.25 0 0.875 0.875 0 0 1 0.875 -0.875h0.255a0.875 0.875 0 0 1 0.875 0.875 0.125 0.125 0 1 1 -0.25 0 0.625 0.625 0 0 0 -0.625 -0.625H2.875A0.625 0.625 0 0 0 2.25 4.125M2.25 2.75a0.25 0.25 0 1 1 0 -0.5 0.25 0.25 0 0 1 0 0.5m1.5 0a0.25 0.25 0 1 1 0 -0.5 0.25 0.25 0 0 1 0 0.5"/>
-        </svg>
-        <h1>404 - NOT FOUND</h1>
-        <p class="lead">
-            <strong>File(s) expire after <%= expireTime %> <%= expireTimeUnit %> or removed when breaking ToS.</strong>
-        </p>
-    </div>
+<main class="page page-404">
+    <section class="hero">
+        <p class="code404">404</p>
+        <h1>This file isn't here anymore.</h1>
+        <p class="lead">Files are deleted after <%= expireTime %> <%= expireTimeUnit %>, or earlier if they break the rules. Maybe the link has a typo?</p>
+        <p><a class="button" href="https://<%= DOMAIN %>/">Upload a file</a></p>
+    </section>
+</main>
+</body>
+</html>

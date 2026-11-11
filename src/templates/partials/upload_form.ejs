@@ -1,6 +1,15 @@
 <form id="upload-form" enctype="multipart/form-data" method="post" action="upload?output=html" class="js">
-    <button id="upload-btn" class="btn" type="button">Drop or paste file(s)</button>
+    <button id="upload-btn" class="dropzone" type="button">
+        <span class="dropzone-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 16V4m0 0-5 5m5-5 5 5"/><path d="M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/></svg></span>
+        <span class="dropzone-title" id="upload-label">Drop files, paste, or click to choose</span>
+        <span class="dropzone-hint">Several files at once are fine</span>
+    </button>
     <input type="file" id="upload-input" name="files[]" multiple data-max-size="<%= max_upload_size %>MiB">
     <input type="submit" value="Submit">
 </form>
+<ul class="facts" aria-label="Limits">
+    <li><strong>Up to <%= max_upload_size >= 1024 ? (max_upload_size / 1024) + ' GiB' : max_upload_size + ' MiB' %></strong> per file</li>
+    <li><strong><%= expireTime %> <%= expireTimeUnit %></strong> then deleted</li>
+    <li><strong>No account</strong> needed</li>
+</ul>
 <ul id="upload-filelist"></ul>
