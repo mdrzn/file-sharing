@@ -8,8 +8,8 @@
     <input type="submit" value="Submit">
 </form>
 <ul class="facts" aria-label="Limits">
-    <li><strong>Up to <%= max_upload_size >= 1024 ? (max_upload_size / 1024) + ' GiB' : max_upload_size + ' MiB' %></strong> per file</li>
-    <li><strong><%= expireTime %> <%= expireTimeUnit %></strong> then deleted</li>
-    <li><strong>No account</strong> needed</li>
+    <li><strong>Up to <%= max_upload_size >= 1024 ? (max_upload_size / 1024) + ' GiB' : max_upload_size + ' MiB' %></strong>&nbsp;per file</li>
+    <li><strong><%= expireTime %> <%= expireTimeUnit %></strong>&nbsp;then deleted</li>
+    <li><strong>No account</strong>&nbsp;needed</li>
 </ul>
 <ul id="upload-filelist"></ul>
