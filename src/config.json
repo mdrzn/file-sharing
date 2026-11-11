@@ -9,7 +9,7 @@
   ],
   "DEBUG": false,
   "BENCHMARK_MODE": false,
-  "max_upload_size": 128,
+  "max_upload_size": 1024,
   "expireTime": 8,
   "expireTimeUnit": "hours",
   "siteName": "files.mdrzn.it",

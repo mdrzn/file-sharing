@@ -41,3 +41,16 @@ if (empty($dbResult['ids'])) {
     $check->deleteFromDB($dbResult['ids']);
     $check->deleteFiles($dbResult['filenames']);
 }
+
+// Discard abandoned chunk uploads after 24 hours, without touching active writers.
+$chunkConfig = json_decode(file_get_contents(__DIR__ . '/config.json'), true);
+$chunkDir = dirname(rtrim($chunkConfig['FILES_ROOT'], '/')) . '/chunks';
+foreach (glob($chunkDir . '/*.part') ?: [] as $part) {
+    $handle = @fopen($part, 'r+b');
+    if (!$handle) continue;
+    if (flock($handle, LOCK_EX | LOCK_NB) && fstat($handle)['mtime'] < time() - 86400) {
+        @unlink($part);
+        @unlink(substr($part, 0, -5) . '.json');
+    }
+    fclose($handle);
+}

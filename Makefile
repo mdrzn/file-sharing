@@ -97,7 +97,7 @@ install: check-var installdirs
 	rm -rf $(DESTDIR)/js
 	rm -rf $(DESTDIR)/php
 	mv $(DESTDIR)/img $(DESTDIR)/public/
-	mv $(DESTDIR)/upload.php $(DESTDIR)/public/
+	mv $(DESTDIR)/upload.php $(DESTDIR)/chunk.php $(DESTDIR)/public/
 	cd $(DESTDIR)/ && $(CURL) -o composer-setup.php https://raw.githubusercontent.com/composer/getcomposer.org/main/web/installer
 	cd $(DESTDIR)/ && $(PHP) composer-setup.php --quiet
 	cd $(DESTDIR)/ && rm composer-setup.php
@@ -117,7 +117,7 @@ install-dev: check-var installdirs
 	rm -rf $(DESTDIR)/js
 	rm -rf $(DESTDIR)/php
 	mv $(DESTDIR)/img $(DESTDIR)/public/
-	mv $(DESTDIR)/upload.php $(DESTDIR)/public/
+	mv $(DESTDIR)/upload.php $(DESTDIR)/chunk.php $(DESTDIR)/public/
 	cd $(DESTDIR)/ && $(CURL) -o composer-setup.php https://raw.githubusercontent.com/composer/getcomposer.org/main/web/installer
 	cd $(DESTDIR)/ && $(PHP) composer-setup.php --quiet
 	cd $(DESTDIR)/ && rm composer-setup.php

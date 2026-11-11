@@ -170,24 +170,69 @@ document.addEventListener('DOMContentLoaded', () => {
      * @param {File} file
      * @param {HTMLLIElement} row
      */
-    const uploadFile = (file, row) => {
+    const uploadFile = async (file, row) => {
         const bar = row.querySelector('.file-progress');
-        const percentIndicator = row.querySelector('.progress-percent');
-        const xhr = new XMLHttpRequest();
-        xhr.open('POST', 'upload.php');
-
-        xhr.row = row;
-        xhr.bar = bar;
-        xhr.percent = percentIndicator;
-        xhr.upload.bar = bar;
-        xhr.upload.percent = percentIndicator;
-
-        xhr.addEventListener('load', handleUploadComplete, false);
-        xhr.upload.onprogress = handleUploadProgress;
-
-        const form = new FormData();
-        form.append('files[]', file);
-        xhr.send(form);
+        const percent = row.querySelector('.progress-percent');
+        const max = parseInt(document.getElementById('upload-input').dataset.maxSize, 10) * 1024 * 1024;
+        const chunkSize = 8 * 1024 * 1024;
+        const finish = (status, response) => handleUploadComplete({target: {
+            status, responseText: JSON.stringify(response), row, bar, percent
+        }});
+        if (file.size > max) {
+            finish(413, {description: 'File too big!'});
+            return;
+        }
+        try {
+            let id = '';
+            let offset = 0;
+            do {
+                const chunked = file.size > chunkSize;
+                const end = chunked ? Math.min(offset + chunkSize, file.size) : file.size;
+                const form = new FormData();
+                if (chunked) {
+                    form.append('id', id);
+                    form.append('name', file.name);
+                    form.append('total', String(file.size));
+                    form.append('offset', String(offset));
+                    form.append('chunk', file.slice(offset, end), 'chunk.bin');
+                } else {
+                    form.append('files[]', file);
+                }
+                const result = await new Promise((resolve, reject) => {
+                    const xhr = new XMLHttpRequest();
+                    xhr.open('POST', chunked ? 'chunk.php' : 'upload.php');
+                    xhr.timeout = 300000;
+                    xhr.upload.onprogress = (event) => {
+                        if (event.lengthComputable) {
+                            const value = Math.floor(100 * (offset + (end - offset) * event.loaded / event.total) / (file.size || 1));
+                            bar.value = value;
+                            percent.textContent = value === 100 ? 'Processing…' : `${value}%`;
+                        }
+                    };
+                    xhr.onerror = () => reject(new Error('Connection failed. Please retry.'));
+                    xhr.ontimeout = () => reject(new Error('Upload timed out. Please retry.'));
+                    xhr.onload = () => {
+                        try {
+                            const data = JSON.parse(xhr.responseText);
+                            if (xhr.status !== 200 || !data.success) throw new Error(data.description || 'Upload failed.');
+                            resolve(data);
+                        } catch (error) {
+                            reject(new Error(xhr.status === 413 ? 'File too big!' : (error instanceof SyntaxError ? 'Upload failed. Please retry.' : error.message)));
+                        }
+                    };
+                    xhr.send(form);
+                });
+                if (!chunked || end === file.size) {
+                    finish(200, result);
+                    return;
+                }
+                if (result.offset !== end || !result.id) throw new Error('Invalid upload response. Please retry.');
+                id = result.id;
+                offset = end;
+            } while (offset < file.size);
+        } catch (error) {
+            finish(400, {description: error.message});
+        }
     };
 
     /**

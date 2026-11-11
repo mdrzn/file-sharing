@@ -41,6 +41,25 @@ make install BUN=node NODE=node NPM=npm PHP=php8.3
 
 Update `src/config.json` before building. Deploy the generated application outside the web root and expose only its `public/` directory.
 
+## Large uploads
+
+The configured maximum is 1024 MiB (1 GiB) per file. The browser sends files over
+8 MiB to `chunk.php` in sequential 8 MiB chunks, allowing large uploads through
+Cloudflare without changing DNS. Smaller files use the existing `upload.php` API.
+Direct API uploads still depend on the proxy's request-size limit.
+
+Chunk requests contain multipart fields `name`, `total` (bytes), `offset` (bytes),
+`chunk`, and `id` (empty for the first request). Continue with the returned opaque
+`id` and next `offset`; the final response has the normal `files` array. Chunks
+must be exactly 8 MiB except the last. Failed uploads should be restarted.
+The assembled file passes the existing MIME/extension checks before publication.
+Temporary chunks live beside `FILES_ROOT` in a private `chunks/` directory;
+`checkExpire.php` removes abandoned uploads after 24 hours.
+
+Origin settings: PHP `upload_max_filesize=1024M`, `post_max_size=1056M`,
+`max_input_time=3600`; Apache `LimitRequestBody 1107296256`. Run the existing
+expiry job regularly and deploy `chunk.php` alongside `upload.php`.
+
 ## Support
 
 Open an issue at [github.com/mdrzn/file-sharing/issues](https://github.com/mdrzn/file-sharing/issues) or email files@mdrzn.it.
